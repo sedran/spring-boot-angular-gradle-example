@@ -1,0 +1,50 @@
+def frontendProjectDir = "${rootProject.projectDir}/frontend"
+
+
+def angularFiles = project.fileTree(dir: frontendProjectDir, includes: [
+  "src/**/*.ts",
+  "src/**/*.html",
+  "src/**/*.json",
+  "src/**/*.css",
+  "src/**/*.scss",
+  "package.json",
+  "package-lock.json",
+  "angular.json",
+  "tsconfig.json",
+  "src/assets/**",
+  "node_modules/**"
+])
+
+task buildAngular(type: Exec) {
+  inputs.files(angularFiles)
+  outputs.dir("${frontendProjectDir}/dist")
+
+  // installAngular should be run prior to this task
+  dependsOn "npmInstall"
+  workingDir "${frontendProjectDir}"
+  // Add task to the standard build group
+  group = BasePlugin.BUILD_GROUP
+  // ng doesn't exist as a file in windows -> ng.cmd
+  if (System.getProperty("os.name").toUpperCase(Locale.ROOT).contains("WINDOWS")) {
+    commandLine "npm.cmd", "run", "buildProd"
+  } else {
+    commandLine "npm", "run", "buildProd"
+  }
+}
+
+task npmInstall(type: Exec) {
+  inputs.files("${frontendProjectDir}/package.json")
+  outputs.dir("${frontendProjectDir}/node_modules")
+
+  workingDir "${frontendProjectDir}"
+  group = BasePlugin.BUILD_GROUP
+  if (System.getProperty("os.name").toUpperCase(Locale.ROOT).contains("WINDOWS")) {
+    commandLine "npm.cmd", "install"
+  } else {
+    commandLine "npm", "install"
+  }
+}
+
+task build {
+  dependsOn "buildAngular"
+}

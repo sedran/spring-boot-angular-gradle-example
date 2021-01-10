@@ -1,0 +1,4 @@
+rootProject.name = 'springangulardemo'
+
+include ':frontend'
+include ':backend'
